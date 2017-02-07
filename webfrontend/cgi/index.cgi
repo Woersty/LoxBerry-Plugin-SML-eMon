@@ -69,7 +69,7 @@ our @sml_devices="";
 ##########################################################################
 
 # Version of this script
-$version = "0.1";
+$version = "0.3";
 
 
 # Figure out in which subfolder we are installed
@@ -161,7 +161,7 @@ if ( !$query{'do'} )           { if ( param('do')           ) { $do           = 
 		{
 			my $device 	= $_;
 	    $device 		=~ s/([\n])//g;
-	    $device 		=~ s%/dev/%%g;
+	    $device 		=~ s%/dev/sml_lesekopf_%%g;
 			$sml_device_list .= '<a target="'.$device.'" href="http://'.$cgi->server_name().'/plugins/'.$psubfolder.'/?device='.$device.'">http://'.$cgi->server_name().'/plugins/'.$psubfolder.'/?device='.$device.'</a><br/>';
 		}
 

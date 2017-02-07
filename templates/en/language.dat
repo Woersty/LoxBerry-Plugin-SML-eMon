@@ -1,0 +1,10 @@
+;
+; Language phrases EN
+;
+TXT_BTN_BACK="Back"
+SML_DEVICES_TILE="Detected metering devices:"
+HLP_TEXT_FUNCTION_TITLE="How the plugin works"
+HLP_TEXT_FUNCTION="The plugin detects all 'CP2104 USB to UART Bridge Controller' during the LoxBerry boot and creates symbolic links with the read head serial number. They are listed under <b>Detected metering devices</b> as Web-Address. To read the energy meter from the Miniserver use these address. For further details have a look into the 'Detailed Help'."
+TXT_SAVE_LOGFILE="Save Logfile"
+TXT_SHOW_LOGFILE="Display Logfile"
+TXT_EMPTY_LOGFILE="Empty Logfile"

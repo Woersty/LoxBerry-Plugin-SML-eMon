@@ -1,0 +1,58 @@
+#!/bin/bash
+
+PATH="/sbin:/bin:/usr/sbin:/usr/bin:REPLACEBYBASEFOLDER/bin"
+PATH=$PATH.":REPLACEBYBASEFOLDER/sbin"
+logfile=REPLACEBYBASEFOLDER/log/plugins/REPLACEBYSUBFOLDER/sml_emon.log
+
+. /lib/lsb/init-functions
+
+### END INIT INFO
+
+echo "`date` - Removing old USB UART devices " >>$logfile
+ls -l /dev/sml_lesekopf_* >>$logfile
+rm -f /dev/sml_lesekopf*  >>$logfile
+echo "# LoxBerry SML-eMon Plugin device rule file - DO NOT EDIT BY HAND!" >/etc/udev/rules.d/99-sml_emon.rules
+((ls /dev/ttyUSB*)|while read devices; do 
+  udevadm info -q all -n $devices |awk -F": " '{print "usbdevice'$u'_"$2}'
+  u=$(($u + 1))
+  done|egrep "_DEVNAME=|_ID_SERIAL_SHORT=|_ID_MODEL="; pre_number="")|while read found_devices; do
+	   if [ -n "`echo $found_devices|grep "_ID_SERIAL_SHORT="|cut -d= -f2-`" ]
+  	 then 
+      serial=`echo -n $found_devices|grep "_ID_SERIAL_SHORT="|cut -d= -f2-`
+      echo -n ', ATTRS{serial}=="'$serial'", SYMLINK+="'sml_lesekopf_$serial'"'
+      echo
+     fi
+	   if [ "`echo $found_devices|grep "_ID_MODEL="|cut -d= -f2-`" = "CP2104_USB_to_UART_Bridge_Controller" ]
+  	 then 
+      model=`echo -n $found_devices|grep "_ID_MODEL="|cut -d= -f2-`
+      echo -n 'SUBSYSTEM=="tty", ATTRS{product}=="'${model//_/ }'"'
+     fi
+done >>/etc/udev/rules.d/99-sml_emon.rules 
+echo "`date` - Following USB UART device rules created: " >>$logfile
+cat /etc/udev/rules.d/99-sml_emon.rules >>$logfile
+echo "`date` - Reload rules... " >>$logfile
+udevadm control --reload-rules >>$logfile && udevadm trigger >>$logfile
+echo "`date` - Following USB UART devices created: " >>$logfile
+chmod 666 /dev/ttyUSB* -f >>$logfile
+COUNTER=10
+while [  $COUNTER -gt 0 ]; do
+   let COUNTER=COUNTER-1 
+	 ls -fL1 /dev/sml_lesekopf* >>$logfile 2>/dev/null 
+	 if [ $? -eq 0 ]
+	 then
+	  COUNTER=0
+	 else
+	 	echo "Timeout in $COUNTER s" >>$logfile
+	 	sleep 1
+	 fi
+done
+sleep 1
+echo "`date` - Setting port speed and parameters" >>$logfile
+(ls -fL1 /dev/sml_lesekopf*)|while read smlDEVICE; do 
+echo "For $smlDEVICE " >>$logfile
+sleep 1
+# Set serial port settings
+stty -F $smlDEVICE  1:0:8bd:0:3:1c:7f:15:4:5:1:0:11:13:1a:0:12:f:17:16:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0
+done
+echo "End Init" >>$logfile
+exit 0

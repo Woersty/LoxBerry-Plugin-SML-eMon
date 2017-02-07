@@ -1,0 +1,56 @@
+									<div id="dialog"></div>
+									<link rel="stylesheet" href="/plugins/<!--$psubfolder-->/style.css">
+									<script src="/plugins/<!--$psubfolder-->/jquery-ui-1.9.2.custom.min.js"></script>
+									<center>
+										<img src="/system/images/icons/<!--$psubfolder-->/icon_64.png">
+										<table border=0 cellpadding=10>
+											<tr>
+												<td>
+													<a  id="btnlog" data-icon="arrow-d" data-role="button" data-mini="true" target="log" href="/plugins/<!--$psubfolder-->/?mode=download_logfile"><!--$TXT_SAVE_LOGFILE--></a>
+												</td>
+												<td>
+													<a  id="btnlog" data-icon="search" data-role="button" data-mini="true" target="log" href="/plugins/<!--$psubfolder-->/?mode=show_logfile"><!--$TXT_SHOW_LOGFILE--></a>
+												</td>
+												<td>
+													<a  id="btnlog" data-icon="delete" data-role="button" data-mini="true" target="log" href="/plugins/<!--$psubfolder-->/?mode=empty_logfile"><!--$TXT_EMPTY_LOGFILE--></a>
+												</td>
+											</tr>
+										</table>
+									</center>
+									<form method="post" data-ajax="false" name="main_form" id="main_form" action="./index.cgi">
+										<div class="form-group">
+											<table class="formtable" style="text-align:center; width:100%;">
+												<tr>
+													<td>
+														<div style="cursor:default; font-size:1.5em; font-family: monospace;" id="sml_devices_div">
+																<B><!--$SML_DEVICES_TILE--></B></br></br>
+																<!--$sml_device_list-->
+														</div>
+													</td>
+												</tr>
+												<tr>
+													<td>
+														<div id="form-error-message" class="form-error-message">&nbsp;</div>
+													</td>
+												</tr>
+											</table>
+										</div>
+									</form>
+									<p>
+										<center>
+											<a id="btncancel" data-role="button" data-inline="true" data-mini="true" data-icon="delete" href="/admin/index.cgi"><!--$TXT_BTN_BACK--></a>
+										</center>
+									</p>
+									<script>
+										var $messages = $('#form-error-message');
+										$messages.fadeOut(1);
+										$.validate(
+										{
+											modules : 'security',
+											errorMessagePosition : $messages,
+										});
+										$( document ).ready(function()
+										{
+											$('#btnscan').trigger('click');
+										});
+									</script>

@@ -1,0 +1,10 @@
+;
+; Language phrases DE
+;
+TXT_BTN_BACK="Zurück"
+SML_DEVICES_TILE="Gefundene Zähler:"
+HLP_TEXT_FUNCTION_TITLE="Funktion des Plugins"
+HLP_TEXT_FUNCTION="Das Plugin erkennt beim Starten des LoxBerry alle 'CP2104 USB to UART Bridge Controller' und legt für jeden erkannten Lesekopf einen symbolischen Link mit der Seriennummer der Lesekopfs an. Diese werden dann unter <b>Gefundene Zähler</b> als Web-Adresse angezeigt. Der Aufruf zum Abfragen des Zählers erfolgt dann vom Miniserver aus über diese Adresse. Für weitere Details bitte die 'Ausführliche Hilfe' lesen."
+TXT_SAVE_LOGFILE="Logdatei speichern"
+TXT_SHOW_LOGFILE="Logdatei anzeigen"
+TXT_EMPTY_LOGFILE="Logdatei leeren"

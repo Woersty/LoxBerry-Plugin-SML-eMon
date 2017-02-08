@@ -1,8 +1,8 @@
 <?php
 // LoxBerry SML-eMon Plugin
 // © git@loxberry.woerstenfeld.de
-// 07.02.2017 20:13:54
-// v0.2
+// 08.02.2017 20:34:37
+// v0.4
 
 // Start timer to measure script execution time
 $start = microtime(true);
@@ -152,7 +152,7 @@ sleep(6);
 $string = bin2hex($serial->readPort());
 
 // Cut garbage data in front of start sequence
-$string = stristr($string,"1b1b1b01010101");
+$string = stristr($string,"1b1b1b1b01010101");
 
 // Close device
 $serial->deviceClose();

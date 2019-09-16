@@ -1,4 +1,6 @@
 <?php
+/* Quelle: http://blog.bubux.de/raspberry-pi-ehz-auslesen/ */
+
 class SML_PARSER {
     public $files;
 
@@ -155,7 +157,7 @@ class SML_PARSER {
             $TYPE_LEN = $this->read(1);
             $TYPE = $TYPE_LEN{0}.'x';     # only high-nibble
             $LEN  += hexdec($TYPE_LEN{1}); # only low-nibble
-            $LEN--; # 1 abziehen wegen zus‰tzlichem TL-Byte
+            $LEN--; # 1 abziehen wegen zus√§tzlichem TL-Byte
         }
 
         if($LEN==1) return;

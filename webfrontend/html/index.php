@@ -34,6 +34,7 @@ $logfiles = glob($logfileprefix."*".$logfilesuffix, GLOB_NOSORT);
 $logfiles_to_keep=30;
 if ( count($logfiles) > $logfiles_to_keep )
 {
+	debug(__line__,"Max 30 logfiles!",7);
 	usort($logfiles,"sort_by_mtime");
 	$log_keeps = $logfiles;
 	$log_keeps = array_slice($log_keeps, 0 - $logfiles_to_keep, $logfiles_to_keep);			
@@ -49,7 +50,7 @@ if ( count($logfiles) > $logfiles_to_keep )
 	
 		foreach($log_deletions as $log_to_delete) 
 		{
-			debug(__line__," -> ".$L["MINISERVERBACKUP.INF_0147_LOGFILE_DELETE"]." ".$log_to_delete,4);
+			debug(__line__,"Older logfile will be deleted: ".$log_to_delete,6);
 			unlink($log_to_delete);
 		}
 		unset($log_deletions);

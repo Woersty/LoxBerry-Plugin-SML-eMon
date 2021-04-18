@@ -1,98 +1,121 @@
 <?php
 // LoxBerry SML-eMon Plugin
 // © git@loxberry.woerstenfeld.de
-// 08.02.2017 20:34:37
-// v0.4
 
 // Start timer to measure script execution time
 $start = microtime(true);
 
-// Configure directories and Logfile path 
-$psubdir              =array_pop(array_filter(explode('/',pathinfo($_SERVER["SCRIPT_FILENAME"],PATHINFO_DIRNAME))));
+// Error Reporting 
+require_once "loxberry_system.php";
+require_once "loxberry_log.php";
+$logfileprefix			= LBPLOGDIR."/sml_emon_php_";
+$logfilesuffix			= ".txt";
+$logfilename			= $logfileprefix.date("Y-m-d_H\hi\ms\s",time()).$logfilesuffix;
+$L = LBSystem::readlanguage("language.ini");
+$plugindata = LBSystem::plugindata();
+$datetime    = new DateTime;
+$my_scriptname		  =array_filter(explode('/',pathinfo($_SERVER["SCRIPT_FILENAME"],PATHINFO_DIRNAME)));
+$psubdir              =array_pop($my_scriptname);
 $mydir                =pathinfo($_SERVER["SCRIPT_FILENAME"],PATHINFO_DIRNAME);
-$pluginlogfile        =$mydir."/../../../../log/plugins/$psubdir/sml_emon.log";
+$device="";
+$params = [
+    "name" => "SML-eMon (PHP)",
+	"filename" => $logfilename,
+    "addtime" => 1];
+$log = LBLog::newLog ($params);
+$date_time_format       = "m-d-Y h:i:s a";						 # Default Date/Time format
+
+// Error Reporting 
+error_reporting(E_ALL);     
+ini_set("display_errors", false);        
+ini_set("log_errors", 1);
+
+$logfiles = glob($logfileprefix."*".$logfilesuffix, GLOB_NOSORT);
+$logfiles_to_keep=30;
+if ( count($logfiles) > $logfiles_to_keep )
+{
+	usort($logfiles,"sort_by_mtime");
+	$log_keeps = $logfiles;
+	$log_keeps = array_slice($log_keeps, 0 - $logfiles_to_keep, $logfiles_to_keep);			
+	foreach($log_keeps as $log_keep) 
+	{
+		debug(__line__," -> "."Keep log ".$log_keep,7);
+	}
+	unset($log_keeps);
+	
+	if ( count($logfiles) > $logfiles_to_keep )
+	{
+		$log_deletions = array_slice($logfiles, 0, count($logfiles) - $logfiles_to_keep);
+	
+		foreach($log_deletions as $log_to_delete) 
+		{
+			debug(__line__," -> ".$L["MINISERVERBACKUP.INF_0147_LOGFILE_DELETE"]." ".$log_to_delete,4);
+			unlink($log_to_delete);
+		}
+		unset($log_deletions);
+	}
+}
+
+$date_time_format       = "m-d-Y h:i:s a";						 # Default Date/Time format
+if (isset($L["GENERAL.DATE_TIME_FORMAT_PHP"])) $date_time_format = $L["GENERAL.DATE_TIME_FORMAT_PHP"];
+LOGSTART ("");
+LOGTITLE ("Meter readout started");
+
+function debug($line,$message = "", $loglevel = 7)
+{
+	global $plugindata;
+	if ( $plugindata['PLUGINDB_LOGLEVEL'] >= intval($loglevel)  || $loglevel == 8 )
+	{
+		$message = preg_replace('/["]/','',$message); 
+		$message = preg_replace('/[\n]/','',$message); 
+		if ( $plugindata['PLUGINDB_LOGLEVEL'] >= 6 ) $message .= " "."in line "." ".$line;
+		if ( isset($message) && $message != "" ) 
+		{
+			switch ($loglevel)
+			{
+			    case 0:
+			        // OFF
+			        break;
+			    case 1:
+			    	$message = "<ALERT>".$message;
+			        LOGALERT  ($message);
+			        break;
+			    case 2:
+			    	$message = "<CRITICAL>".$message;
+			        LOGCRIT   ($message);
+			        break;
+			    case 3:
+			    	$message = "<ERROR>".$message;
+			        LOGERR    ($message);
+			        break;
+			    case 4:
+			    	$message = "<WARNING>".$message;
+			        LOGWARN   ($message);
+			        break;
+			    case 5:
+			    	$message = "<OK>".$message;
+			        LOGOK     ($message);
+			        break;
+			    case 6:
+			    	$message = "<INFO>".$message;
+			        LOGINF   ($message);
+			        break;
+			    case 7:
+			    default:
+			    	$message = $message;
+			        LOGDEB   ($message);
+			        break;
+			}
+		}
+	}
+	return;
+}
 
 // Configure device prefix
 $dev_prefix = "/dev/sml_lesekopf_";
 
-// Configure error handling 
-ini_set("display_errors", false);       						// Do not display in browser			
-ini_set("error_log", $pluginlogfile);								// Pass errors to logfile
-ini_set("log_errors", 1);														// Log errors
-
-#$pluginlogfile_handle =fopen($pluginlogfile, "a");	
-
 // Set default for 'mode' if not existent in request variables
 if (!isset($_REQUEST["mode"])) { $_REQUEST["mode"] = 'normal'; }
-
-// Check mode for downloading or displaying or deleting logfile
-if($_REQUEST["mode"] == "download_logfile")
-{
-  if (file_exists($pluginlogfile))
-  {
-    error_log( date('Y-m-d H:i:s ')."[LOG] Download logfile\n", 3, $pluginlogfile);
-    header('Content-Description: File Transfer');
-    header('Content-Type: text/plain');
-    header('Content-Disposition: attachment; filename="'.basename($pluginlogfile).'"');
-    header('Expires: 0');
-    header('Cache-Control: must-revalidate');
-    header('Pragma: public');
-    header('Content-Length: ' . filesize($pluginlogfile));
-    readfile($pluginlogfile);
-  }
-  else
-  {
-    error_log( date('Y-m-d H:i:s ')."[ERR] E0001: Error reading logfile!\n", 3, $pluginlogfile);
-    die("ERROR E0001: Error reading logfile.");
-  }
-  exit;
-}
-else if($_REQUEST["mode"] == "show_logfile")
-{
-  if (file_exists($pluginlogfile))
-  {
-    error_log( date('Y-m-d H:i:s ')."[LOG] Show logfile\n", 3, $pluginlogfile);
-    header('Content-Description: File Transfer');
-    header('Content-Type: text/plain');
-    header('Content-Disposition: inline; filename="'.basename($pluginlogfile).'"');
-    header('Expires: 0');
-    header('Cache-Control: must-revalidate');
-    header('Pragma: public');
-    header('Content-Length: ' . filesize($pluginlogfile));
-    readfile($pluginlogfile);
-  }
-  else
-  {
-    error_log( date('Y-m-d H:i:s ')."[ERR] E0001: Error reading logfile!\n", 3, $pluginlogfile);
-    die("ERROR E0001: Error reading logfile.");
-  }
-  exit;
-}
-else if($_REQUEST["mode"] == "empty_logfile")
-{
-  if (file_exists($pluginlogfile))
-  {
-    $f = @fopen("$pluginlogfile", "r+");
-    if ($f !== false)
-    {
-      ftruncate($f, 0);
-      fclose($f);
-      error_log( date('Y-m-d H:i:s ')."[LOG] Logfile content successfully deleted.\n", 3, $pluginlogfile);
-      echo "Logfile content successfully deleted.\n";
-    }
-    else
-    {
-      error_log( date('Y-m-d H:i:s ')."[ERR] E0002: Logfile content not deleted due to problems doing it.\n", 3, $pluginlogfile);
-      die("ERROR E0002: Logfile content not deleted due to problems doing it.");
-    }
-  }
-  else
-  {
-    error_log( date('Y-m-d H:i:s ')."[ERR] E0001: Error reading logfile!\n", 3, $pluginlogfile);
-    die("ERROR E0001: Error reading logfile.");
-  }
-  exit;
-}
 
 // Check command line parameters
 if (isset($argv[0]))
@@ -100,12 +123,12 @@ if (isset($argv[0]))
   if (isset($argv[1]))
   {
     $device = $dev_prefix.$argv[1];
-    error_log( date('Y-m-d H:i:s ')."[CLI] CLI Mode - Using device ".$device."\n", 3, $pluginlogfile);
+    debug( __line__, "[CLI] CLI Mode - Using device ".$device."\n", 6);
     echo "CLI Mode - Using device ".$device.":\n";
   }
   else
   {
-    error_log( date('Y-m-d H:i:s ')."[ERR] E0003: Got request from shell device parameter was incorrect or missing.\n", 3, $pluginlogfile);
+    debug( __line__, "[ERR] E0003: Got request from shell device parameter was incorrect or missing.\n", 3);
     die("ERROR E0003: Incorrect or missing device parameter!\nUsage: php -f $argv[0] <Device>\nExample: php -f $argv[0] XXXXXXXX\nXXXXXXXX = Serial number of USB Device without ".$dev_prefix." prefix.\n");
   }
 }
@@ -114,11 +137,11 @@ else
   if (isset($_GET['device']))
   {
     $device = $dev_prefix.$_GET['device'];
-    error_log( date('Y-m-d H:i:s ')."[WEB] WEB Mode - Using device ".$device."\n", 3, $pluginlogfile);
+    debug( __line__, "[WEB] WEB Mode - Using device ".$device."\n", 6);
   }
   else
   {
-    error_log( date('Y-m-d H:i:s ')."[ERR] E0004: Got request from web but device parameter was incorrect or missing.\n", 3, $pluginlogfile);
+    debug( __line__, "[ERR] E0004: Got request from web but device parameter was incorrect or missing.\n", 3);
     die("ERROR E0004: Incorrect or missing device parameter!\nUsage: ".$_SERVER["PHP_SELF"]."?device=DeviceSerialNumber<br>Example: <a href='".$_SERVER["PHP_SELF"]."?device=XXXXXXXX'>".$_SERVER["PHP_SELF"]."?device=XXXXXXXX</a>\n<br/>XXXXXXXX = Serial number of USB Device without ".$dev_prefix." prefix.<br/>\n");
   }
 }
@@ -127,18 +150,20 @@ else
 require_once 		'php_sml_parser.class.php';
 require_once 		'php_serial.class.php';
 $sml_parser 		= new SML_PARSER();
-$serial 				= new phpSerial();
+$serial 			= new phpSerial();
 
 // Check if passed device name is accessible
 if (!is_readable($device))
 {
-  error_log( date('Y-m-d H:i:s ')."[ERR] E0005: Cannot read/find device ".$device."\n", 3, $pluginlogfile);
+  debug( __line__, "[ERR] E0005: Cannot read/find device ".$device."\n", 3);
   die("ERROR E0005: Cannot read/find device ".$device."\n");
 }
 
 // Set device
 $serial->deviceSet($device);
-
+LOGTITLE ("Meter readout of $device started");
+debug( __line__, "Reading ".$device."\n", 5);
+  
 // Open device
 $serial->deviceOpen();
 
@@ -171,7 +196,9 @@ if ($string == "")
   echo " <execution>".round( ( microtime(true) - $start ),5 )." s</execution>\n";
   echo " <status>ERROR</status>\n";
   echo "</root>\n";
-  error_log( date('Y-m-d H:i:s ')."[ERR] E0006: Got no data from ".basename($device)."\n", 3, $pluginlogfile);
+  debug( __line__, "[ERR] E0006: Got no data from ".basename($device)."\n", 3);
+  LOGTITLE ("Ended with error.");
+  LOGEND ("");
   exit(1);
 } 
 
@@ -186,11 +213,14 @@ if (!isset($record))
   echo " <execution>".round( ( microtime(true) - $start ),5 )." s</execution>\n";
   echo " <status>ERROR</status>\n";
   echo "</root>\n";
-  error_log( date('Y-m-d H:i:s ')."[ERR] E0007: Parser couldn't detect valid data from ".basename($device)."\n", 3, $pluginlogfile);
+  debug( __line__, "[ERR] E0007: Parser couldn't detect valid data from ".basename($device)."\n", 3);
+  LOGTITLE ("Ended with error.");
+  LOGEND ("");
   exit(1);
 } 
 
 // Loop trough each parser result 
+$metercount="";
 foreach ($record['body']['vallist'] as $values) 
 {
 	echo " <record><device>".basename($device)."</device>";
@@ -204,12 +234,13 @@ foreach ($record['body']['vallist'] as $values)
 		// Use object 0100100700FF
 		if ($key == "objName" && $value == "0100100700FF")
 		{
-		  error_log( date('Y-m-d H:i:s ')."[READ] Aktuelle Gesamtwirkleistung (Current total power) @ ".basename($device)." = ".$values['value']." W\n", 3, $pluginlogfile);
+		  debug( __line__, "[READ] Aktuelle Gesamtwirkleistung (Current total power) @ ".basename($device)." = ".$values['value']." W\n", 6);
 		} 
 		// Use object 0100010800FF
 		if ($key == "objName" && $value == "0100010800FF")
 		{
-	    error_log( date('Y-m-d H:i:s ')."[READ] Aktueller Zaehlerstand (Current meter reading) @ ".basename($device)." = ".($values['value'] * $values['scaler'] / 1000)." kWh\n", 3, $pluginlogfile);
+	    debug( __line__, "[READ] Aktueller Zaehlerstand (Current meter reading) @ ".basename($device)." = ".($values['value'] * $values['scaler'] / 1000)." kWh\n", 6);
+		$metercount .="Meter reading for ".basename($device)." is ".($values['value'] * $values['scaler'] / 1000)." kWh / ";
 		} 
 	}
 	$result = " <status>OK</status>\n";
@@ -218,4 +249,6 @@ foreach ($record['body']['vallist'] as $values)
 echo $result;
 echo " <execution>".round( ( microtime(true) - $start ),5 )." s</execution>\n";
 echo "</root>\n";
+LOGTITLE ($metercount ." Completed in ".round( ( microtime(true) - $start ),1 )." s");
+LOGEND ("");
 exit(0);

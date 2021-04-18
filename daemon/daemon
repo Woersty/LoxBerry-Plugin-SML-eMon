@@ -8,6 +8,8 @@ logfile=REPLACEBYBASEFOLDER/log/plugins/REPLACEBYSUBFOLDER/sml_emon.log
 
 ### END INIT INFO
 
+touch $logfile
+chmod 666 $logfile
 echo "`date` - Removing old USB UART devices " >>$logfile
 ls -l /dev/sml_lesekopf_* >>$logfile
 rm -f /dev/sml_lesekopf*  >>$logfile

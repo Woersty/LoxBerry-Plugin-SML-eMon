@@ -1,0 +1,64 @@
+									<div id="dialog"></div>
+									<link rel="stylesheet" href="/plugins/<TMPL_VAR LBPPLUGINDIR>/style.css">
+									<script src="/plugins/<TMPL_VAR LBPPLUGINDIR>/jquery-ui-1.9.2.custom.min.js"></script>
+									<center>
+										<img src="/system/images/icons/<TMPL_VAR LBPPLUGINDIR>/icon_64.png">
+									</center><br>
+									<form method="post" data-ajax="false" name="main_form" id="main_form" action="./index.cgi">
+										<div class="form-group">
+											<table class="formtable" style="text-align:center; width:100%;">
+												<tr>
+													<td>
+														<div style="cursor:default; font-size:1.5em; font-family: monospace;" id="sml_devices_div">
+																<B><TMPL_VAR SML.SML_DEVICES_TILE></B></br>
+																<TMPL_VAR sml_device_list>
+														</div>
+													</td>
+												</tr>
+												<tr>
+													<td>
+														<div id="form-error-message" class="form-error-message">&nbsp;</div>
+													</td>
+												</tr>
+											</table>
+										</div>
+									</form>
+									<p>
+										<center>
+											<a id="btncancel" data-role="button" data-inline="true" data-mini="true" data-icon="delete" href="/admin/index.cgi"><TMPL_VAR SML.TXT_BTN_BACK></a>
+										</center>
+									<center>
+										<div style="display:table;">
+											<div style="display:table-row;">
+												<div style="display:table-cell; ">
+													<div style="display:table; padding:10px; border: 1px solid black; border-radius: 5px; background-color: rgba(19,172,132,.2);">
+													<TMPL_VAR LOGGING.LOG_AREA> (<TMPL_VAR LOGGING.LOGLEVEL> <TMPL_VAR LOGLEVEL>)<br>
+												 		<div style="display:table-row;">
+															<div style="display:table-cell; border-radius: 5px;" id="delete_log_div">
+													 			<button onclick="window.open('/admin/system/logmanager.cgi?package=sml_emon', 'log'); return false;" id="logview" data-role="button" data-inline="true" data-mini="true"><TMPL_VAR LOGGING.LOG_BUTTON_VIEW></button>
+													 			<SCRIPT> 
+								 					 	 			$("label").css("text-align","left").css("margin-top","8px").css("margin-bottom","-8px").css("margin-left","0px");
+																</SCRIPT>
+															</div>
+												 		</div>
+													</div>
+											 	</div>
+										 	</div>
+									 	</div>
+									</center>
+									<small><small><TMPL_VAR VERSION></small></small>
+
+									</p>
+									<script>
+										var $messages = $('#form-error-message');
+										$messages.fadeOut(1);
+										$.validate(
+										{
+											modules : 'security',
+											errorMessagePosition : $messages,
+										});
+										$( document ).ready(function()
+										{
+											$('#btnscan').trigger('click');
+										});
+									</script>

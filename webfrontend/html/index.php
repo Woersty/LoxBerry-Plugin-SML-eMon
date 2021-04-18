@@ -59,8 +59,7 @@ if ( count($logfiles) > $logfiles_to_keep )
 
 $date_time_format       = "m-d-Y h:i:s a";						 # Default Date/Time format
 if (isset($L["GENERAL.DATE_TIME_FORMAT_PHP"])) $date_time_format = $L["GENERAL.DATE_TIME_FORMAT_PHP"];
-LOGSTART ("");
-LOGTITLE ("Meter readout started");
+LOGSTART ("Meter readout started");
 
 function debug($line,$message = "", $loglevel = 7)
 {
@@ -251,5 +250,6 @@ echo $result;
 echo " <execution>".round( ( microtime(true) - $start ),5 )." s</execution>\n";
 echo "</root>\n";
 LOGTITLE ($metercount ." Completed in ".round( ( microtime(true) - $start ),1 )." s");
+LOGOK ($metercount ." Completed in ".round( ( microtime(true) - $start ),1 )." s");
 LOGEND ("");
 exit(0);
